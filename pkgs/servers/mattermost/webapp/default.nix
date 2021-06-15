@@ -5,6 +5,7 @@
 , nodejs
 , yarn
 , git
+, callPackage
 }:
 
 let
@@ -19,6 +20,8 @@ let
       cp -r $out/deps/mattermost-webapp-modules/node_modules/* $out/node_modules/
     '';
   };
+
+  nodeDependencies = (callPackage ./node-deps.nix { }).shell.nodeDependencies;
 
 in
 
@@ -45,9 +48,9 @@ stdenv.mkDerivation rec {
   '';
 
   buildPhase = ''
-    ln -sf ${yarnModules pname version src}/node_modules node_modules
-    export NODE_OPTIONS='--unhandled-rejections=warn'
-    npm --update-notifier=false run build
+    ln -s ${nodeDependencies}/lib/node_modules ./node_modules
+    export PATH="${nodeDependencies}/bin:$PATH"
+    cross-env NODE_ENV=production webpack
   '';
 
   installPhase = ''
@@ -65,12 +68,12 @@ stdenv.mkDerivation rec {
 
 }
 
-  # installPhase = ''
-  #   mkdir -p $out
-  #   tar --strip 1 --directory $out -xf $src \
-  #   mattermost/client \
-  #   mattermost/i18n \
-  #   mattermost/fonts \
-  #   mattermost/templates \
-  #   mattermost/config
-  # '';
+# installPhase = ''
+#   mkdir -p $out
+#   tar --strip 1 --directory $out -xf $src \
+#   mattermost/client \
+#   mattermost/i18n \
+#   mattermost/fonts \
+#   mattermost/templates \
+#   mattermost/config
+# '';
