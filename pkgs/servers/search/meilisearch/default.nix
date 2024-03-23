@@ -6,9 +6,20 @@
 , SystemConfiguration
 , nixosTests
 , nix-update-script
+, config
+, cudaSupport ? config.cudaSupport
+, cudaPackages
+, symlinkJoin
 }:
 
-let version = "1.7.3";
+let
+  version = "1.7.3";
+  inherit (cudaPackages) cuda_nvcc cudaFlags cuda_cudart;
+  forBuild = p: p.__spliced.pkgsBuildHost or p;
+  cudaEnv = symlinkJoin {
+      name = "meilisearch-cuda-env";
+      paths = [ (forBuild cuda_nvcc) cuda_cudart ];
+  };
 in
 rustPlatform.buildRustPackage {
   pname = "meilisearch";
@@ -21,9 +32,10 @@ rustPlatform.buildRustPackage {
     hash = "sha256-2kwogur6hS7/xjUhH9aRJevWbtgg5xQkvB/aIj7wyJ8=";
   };
 
-  cargoBuildFlags = [
-    "--package=meilisearch"
-  ];
+  # WIP
+  buildFeatures = lib.optional cudaSupport ["cuda"];
+  env.CUDA_ROOT = lib.optionalString cudaSupport "${cudaEnv}";
+  env.CUDA_COMPUTE_CAP = cudaFlags.dropDot (lib.head cudaFlags.cudaCapabilities);
 
   cargoLock = {
     lockFile = ./Cargo.lock;
