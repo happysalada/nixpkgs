@@ -99,9 +99,6 @@ stdenv.mkDerivation rec {
     ++ lib.optionals (!enableGL) [ "HAVE_GLUT=no" ]
     ++ lib.optionals (enableOcr) [
       "USE_TESSERACT=yes"
-      # For some reason the build can't find leptonica with
-      # pkg-config
-      "USE_SYSTEM_LEPTONICA=no"
     ];
 
   nativeBuildInputs =
