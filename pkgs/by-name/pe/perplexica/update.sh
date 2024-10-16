@@ -12,7 +12,7 @@ fi
 
 tag="$1"
 
-set -euo pipefail
+set -euox pipefail
 
 if [ -z "$tag" ]; then
   tag="$(

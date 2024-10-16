@@ -5,7 +5,7 @@
   fetchFromGitHub,
   makeWrapper,
   nodejs,
-  patchelf,
+  autoPatchelfHook,
   srcOnly,
   python3,
   removeReferencesTo,
@@ -47,7 +47,6 @@ mkYarnPackage {
 
   nativeBuildInputs = [
     makeWrapper
-    patchelf
   ];
 
   buildPhase = ''
@@ -61,7 +60,10 @@ mkYarnPackage {
 
   pkgConfig = {
     better-sqlite3 = {
-      nativeBuildInputs = [ python3 ] ++ lib.optionals stdenv.isDarwin [ cctools ];
+      nativeBuildInputs = [
+        python3
+        autoPatchelfHook
+      ] ++ lib.optionals stdenv.isDarwin [ cctools ];
       postInstall = ''
         # build native sqlite bindings
         npm run build-release --offline --nodedir="${nodeSources}"
